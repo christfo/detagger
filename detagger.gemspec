@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
     "README.rdoc",
     "Rakefile",
     "VERSION",
+    "detagger.gemspec",
     "lib/detagger.rb",
     "spec/detagger_spec.rb",
     "spec/spec_helper.rb"
