@@ -17,8 +17,12 @@ Jeweler::Tasks.new do |gem|
   gem.name = "detagger"
   gem.homepage = "http://github.com/christfo/detagger"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{a library to 'detag' strings}
+  gem.description = %Q{This is intended to be used as a mixin, usualy with some kind of library that parses
+  optional command line arguments. The feature here is that the options may contain tags ('example_tag:') that
+  are not resolved until they are used. This means that one option may refer to another. An example might be:
+  --stage /tmp/fred --logfile stage:/my.log 
+  which would later provide a method 'logfile' that would return '/tmp/fred/my.log' }
   gem.email = "chris.fordy@gmail.com"
   gem.authors = ["christfo"]
   # dependencies defined in Gemfile
