@@ -7,40 +7,53 @@ require 'facets/string'
 module Detagger
     attr_accessor :tagex
 
-    def drill_down_ref(txt,target = self)
+    # create a chain of objects that will be used to discover the value behind the tags.
+    # This will be ordered, favouring the first item in preference to later ones.
+    def set_detag_chain(*args)
+        @detag_chain = args
+    end
+
+    def detag_chain
+        (@detag_chain || self)
+    end
+
+    def drill_down_ref(txt,targets = detag_chain)
         return  unless txt 
         parm = txt.chomp(":").to_sym
-        begin
-            new_txt = target.send(parm) 
-            raise "Self Reference" if new_txt == txt
-            new_txt
-        rescue NoMethodError
-            txt
+        [*targets].each do |target|
+            begin
+                new_txt = target.send(parm) 
+                raise "Self Reference" if new_txt == txt
+                return new_txt
+            rescue NoMethodError
+            end
         end
+        txt
     end
     
-    def detag( value, target = self, resolved = [] )
+    def detag( value, targets = detag_chain, resolved = [] )
         @tagex ||=  /([^\/:]+:)/
-
-        if ( value.respond_to? :call )
-            # manipulates self so that it is called with 'this' and not he context of the proc when defined
-            value = target.instance_eval &value
-        end
-
-        if value && value.is_a?(String) 
-            value = value.shatter(@tagex).flatten.map do |mtch|
-                if mtch =~ @tagex
-                    raise "Circular Reference" if resolved.include? mtch
-                    new_value = drill_down_ref(mtch,target)
-                    mtch == new_value ? new_value : detag(new_value, target, resolved + [mtch] )
-                else
-                    mtch
-                end
+        [*targets].each do |target|
+            if ( value.respond_to? :call )
+                # manipulates self so that it is called with 'this' and not he context of the proc when defined
+                value = target.instance_eval &value
             end
-            if (value.uniq == [nil]) 
-                value = nil
-            else
-                value = value.join
+
+            if value && value.is_a?(String) 
+                value = value.shatter(@tagex).flatten.map do |mtch|
+                    if mtch =~ @tagex
+                        raise "Circular Reference" if resolved.include? mtch
+                        new_value = drill_down_ref(mtch,targets)
+                        mtch == new_value ? new_value : detag(new_value, [target], resolved + [mtch] )
+                    else
+                        mtch
+                    end
+                end
+                if (value.uniq == [nil]) 
+                    value = nil
+                else
+                    value = value.join
+                end
             end
         end
         value
@@ -48,10 +61,10 @@ module Detagger
 
     def method_missing( method, *args, &blk )
         access, orig_method = *method.to_s.scan(/^(detag|raw)_(.+)$/).flatten
-        unless orig_method && self.respond_to?(orig_method.to_sym )
+        unless orig_method && target = [*detag_chain].find {|t| t.respond_to?( orig_method.to_sym )}
             super(method,*args,&blk)
         else
-            rawval = self.send( orig_method, *args, &blk ) 
+            rawval = target.send( orig_method, *args, &blk ) 
             (access == "detag") ? detag( rawval ) : rawval  
         end
     end
