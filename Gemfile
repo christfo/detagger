@@ -14,4 +14,4 @@ group :development do
   gem 'rcov', :platforms => :mri_18
 end
 
-gem "facets"
+gem "facets", "= 2.9.2"

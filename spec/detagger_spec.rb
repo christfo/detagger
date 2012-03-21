@@ -36,6 +36,11 @@ describe Detagger do
         @options. should respond_to :drill_down_ref
     end
 
+    it "will respond to detag* and raw* mehtods" do
+        @options. should respond_to :detag_bob
+        @options. should respond_to :raw_bob
+    end
+
     it "will give a value for inputs" do
         @options.bob.should  == "henry:"
         @options.sue.should  == "mary"

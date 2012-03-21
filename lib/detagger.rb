@@ -59,8 +59,12 @@ module Detagger
         value
     end
 
-    def method_missing( method, *args, &blk )
+    def split_method(method)
         access, orig_method = *method.to_s.scan(/^(detag|raw)_(.+)$/).flatten
+    end
+
+    def method_missing( method, *args, &blk )
+        access, orig_method = split_method( method )
         unless orig_method && target = [*detag_chain].find {|t| t.respond_to?( orig_method.to_sym )}
             super(method,*args,&blk)
         else
@@ -69,6 +73,12 @@ module Detagger
         end
     end
     
+    def respond_to?( method )
+        access, orig_method = split_method( method )
+        return true if orig_method && [*detag_chain].find {|t| t.respond_to?( orig_method.to_sym )}
+        super(method)
+    end
+
     def unless_flag( flag, &blk )
         unless self.send("detag_#{flag}")
             yield blk
