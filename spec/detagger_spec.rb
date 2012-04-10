@@ -22,6 +22,7 @@ describe Detagger do
 
             def jim;    "" end
             def soph;   nil end
+            def dave;   true end
             def matt;   "soph:" end
             def mike;   "sue:soph:sue:jim:" end
 
@@ -114,5 +115,33 @@ describe Detagger do
         second.henry = "correct"
         @options.set_detag_chain( @options, second )
         @options.detag_bob.should  == "correct"
+    end
+
+    it "will provide if flag sugar" do
+        result = "Nowt"
+        capture(:stdout) {
+            @options.if_flag(:soph) { result = "BAD" }
+        }.should =~ /Skipping step/
+        result.should == "Nowt"
+        capture(:stdout) {
+            @options.if_flag(:matt) { result = "BAD" }
+        }.should =~ /Skipping step/
+        result.should == "Nowt"
+        capture(:stdout) {
+            @options.if_flag(:dave) { result = "GOOD" }
+        }.should == ""
+        result.should == "GOOD"
+    end
+
+    it "will provide unless flag sugar" do
+        result = "Nowt"
+        capture(:stdout) {
+            @options.unless_flag(:dave) { result = "BAD" }
+        }.should =~ /Skipping step/
+        result.should == "Nowt"
+        capture(:stdout) {
+            @options.unless_flag(:matt) { result = "GOOD" }
+        }.should == ""
+        result.should == "GOOD"
     end
 end

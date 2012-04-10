@@ -80,7 +80,7 @@ module Detagger
     end
 
     def unless_flag( flag, &blk )
-        unless self.send("detag_#{flag}")
+        unless self.send(:detag, self.send(flag) )
             yield blk
         else
            puts "\033[31m!! Skipping step due to #{flag.to_s.quote} being true...\033[0m"
@@ -89,7 +89,7 @@ module Detagger
     end
 
     def if_flag( flag, &blk )
-        if self.send( "detag_#{flag}" )
+        if self.send(:detag, self.send(flag) )
             yield blk
         else
             puts "\033[31m!! Skipping step due to #{flag.to_s.quote} being false...\033[0m"
