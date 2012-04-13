@@ -33,7 +33,8 @@ module Detagger
     
     def detag( value, targets = detag_chain, resolved = [] )
         @tagex ||=  /([^\/:]+:)/
-        [*targets].each do |target|
+        targets = [targets] unless targets.is_a? Array
+        targets.each do |target|
             if ( value.respond_to? :call )
                 # manipulates self so that it is called with 'this' and not he context of the proc when defined
                 value = target.instance_eval &value
